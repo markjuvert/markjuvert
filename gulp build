@@ -1,0 +1,81 @@
+'use strict';
+var gulp        = require('gulp');
+var browserSync = require('browser-sync');
+var sass        = require('gulp-sass');
+var del         = require('del');
+var  imagemin   = require('gulp-imagemin');
+var  uglify     = require('gulp-uglify');
+var usemin      = require('gulp-usemin');
+var rev         = require('gulp-rev');
+var cleanCss    = require('gulp-clean-css');
+var flatmap     = require('gulp-flatmap');
+var htmlmin     = require('gulp-htmlmin');
+var concat =    require('gulp-concat');
+
+// Compile sass into CSS & auto-inject into browsers
+gulp.task('sass', function() {
+    return gulp.src('./css/*.scss')
+        .pipe(sass())
+        .pipe(sass().on('error', sass.logError))
+        .pipe(browserSync.stream());
+});
+
+// Move the javascript files into our /src/js folder
+gulp.task('js', function() {
+    return gulp.src(['node_modules/bootstrap/dist/js/bootstrap.min.js', 'node_modules/jquery/dist/jquery.min.js', 'node_modules/popper.js/dist/umd/popper.min.js'])
+        .pipe(gulp.dest("./js"))
+        .pipe(browserSync.stream());
+});
+
+
+// Static Server + watching scss/html files
+gulp.task('serve', gulp.series('sass', function() {
+
+    browserSync.init({
+        server: "./"  
+    });
+
+    gulp.watch(['node_modules/bootstrap/scss/bootstrap.scss', '/scss/*.scss'], gulp.series('sass'));
+    gulp.watch("./").on('change', browserSync.reload);
+}));
+
+gulp.task('default', gulp.parallel('js','serve'));
+
+gulp.task('clean', function() {
+   return del(['dist']);
+ });
+ 
+gulp.task('copyfonts', function() {
+   gulp.src('./node_modules/font-awesome/fonts/**/*.{ttf,woff,eof,svg}*')
+   .pipe(gulp.dest('./dist/fonts'));
+});
+ 
+// Images
+gulp.task('imagemin', function() {
+    return gulp.src('img/*.{png,jpg,gif}')
+      .pipe(imagemin({ optimizationLevel: 3, progressive: true, interlaced: true }))
+      .pipe(gulp.dest('dist/img'));
+  });
+
+  gulp.task('usemin', function() {
+    return gulp.src('./*.html')
+    .pipe(flatmap(function(stream, file){
+        return stream
+          .pipe(usemin({
+              css: [ rev() ],
+              html: [ function() { return htmlmin({ collapseWhitespace: true })} ],
+              js: [ uglify(), rev() ],
+              inlinejs: [ uglify() ],
+              inlinecss: [ cleanCss(), 'concat' ]
+          }))
+      }))
+      .pipe(gulp.dest('dist/'));
+  });  
+
+
+  
+  gulp.task('build',['clean'], function(done) {
+    gulp.start('copyfonts','imagemin','usemin');
+    done();
+});
+ 
