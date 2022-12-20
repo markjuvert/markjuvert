@@ -5,7 +5,7 @@
 
 Here are some ideas to get you started:-->
 
-- 🔭 I’m currently working as a DevOps Enginer
+- 🔭 I’m currently working as a DevOps Engineer
 - 🌱 I’m currently learning RHCE
 - 👯 I’m looking to collaborate on DevOps Projects
 - 💬 Ask me anything related to DevOps SDLC
